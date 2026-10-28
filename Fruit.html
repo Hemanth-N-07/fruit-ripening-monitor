@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fruit Ripening Monitor</title>
+<style>
+:root{--bg:#f7f3e6;--surf:#fffdf4;--ink:#1f2d1f;--mut:#546354;--g:#2f6b3a;--g2:#dfeccf;--acc:#d9a31a;--line:#d9d4bd;--warn:#fff1cf;--warnb:#c98f00;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141b15;--surf:#1c261d;--ink:#eef2e4;--mut:#a9b8a6;--g:#7cc78a;--g2:#25392a;--acc:#e8bb42;--line:#324233;--warn:#3a3213;--warnb:#e8bb42;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141b15;--surf:#1c261d;--ink:#eef2e4;--mut:#a9b8a6;--g:#7cc78a;--g2:#25392a;--acc:#e8bb42;--line:#324233;--warn:#3a3213;--warnb:#e8bb42;color-scheme:dark}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surf);z-index:10}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;line-height:1.2;margin:0 0 .5em}
+h1{font-size:clamp(2.2rem,6vw,3.6rem)}h2{font-size:clamp(1.6rem,4vw,2.2rem)}
+a{color:var(--g)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surf);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-family:Georgia,serif;font-weight:700;color:var(--g);text-decoration:none;font-size:1.15rem}
+nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+nav a{display:block;padding:8px 12px;border-radius:999px;text-decoration:none;color:var(--ink);font-size:.95rem}
+nav a:hover{background:var(--g2)}
+#menu{display:none;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:1rem}
+@media(max-width:760px){#menu{display:block}nav{display:none;position:absolute;left:0;right:0;top:60px;background:var(--surf);border-bottom:1px solid var(--line);padding:8px 20px}nav.open{display:block}nav ul{flex-direction:column}}
+section{padding:56px 0}
+.hero{background:linear-gradient(160deg,var(--g2),var(--bg));padding:72px 0 56px}
+.hero .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:36px;align-items:center}
+@media(max-width:820px){.hero .wrap{grid-template-columns:1fr}}
+.tag{display:inline-block;background:var(--g);color:var(--surf);padding:4px 12px;border-radius:999px;font-size:.8rem;letter-spacing:.04em;margin-bottom:14px}
+.lead{font-size:1.1rem;color:var(--mut);max-width:56ch}
+.btn{display:inline-block;background:var(--g);color:var(--surf);padding:11px 20px;border-radius:10px;text-decoration:none;font-weight:600;margin:8px 10px 0 0}
+.btn.o{background:none;border:2px solid var(--g);color:var(--g)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:22px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.icon{font-size:1.8rem}
+.warn{background:var(--warn);border-left:5px solid var(--warnb);border-radius:10px;padding:14px 18px;margin-top:20px}
+.demo-badge{display:inline-block;background:var(--warn);border:1px solid var(--warnb);border-radius:6px;padding:2px 8px;font-size:.78rem;font-weight:700}
+.swatch{height:64px;border-radius:12px;border:1px solid var(--line);margin:10px 0;transition:background .3s}
+input[type=range]{width:100%;accent-color:var(--g)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.stat{flex:1 1 90px;background:var(--bg);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:1.3rem}.stat small{color:var(--mut)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{border:1px solid var(--g);background:var(--surf);color:var(--ink);border-radius:999px;padding:9px 14px;font:inherit;cursor:pointer;text-align:left}
+.chip[aria-pressed=true]{background:var(--g);color:var(--surf)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px}
+td,th{padding:9px 12px;border-bottom:1px solid var(--line);text-align:center}
+th:first-child,td:first-child{text-align:left}
+.on{color:var(--g);font-weight:700}.off{color:var(--mut)}
+ol.steps{padding-left:20px}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--mut);font-size:.9rem}
+svg text{fill:var(--mut);font-size:11px}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap bar">
+  <a class="logo" href="#top">🍌 Fruit Ripening Monitor</a>
+  <button id="menu" aria-expanded="false" aria-controls="nav">Menu</button>
+  <nav id="nav" aria-label="Main"><ul>
+   <li><a href="#objective">Objective</a></li><li><a href="#sensors">Sensors</a></li>
+   <li><a href="#demo">Sample data</a></li><li><a href="#method">Methodology</a></li><li><a href="#disclosure">Disclosure</a></li>
+  </ul></nav>
+ </div>
+</header>
+
+<main id="top">
+<section class="hero"><div class="wrap">
+ <div>
+  <span class="tag">Multidisciplinary student project</span>
+  <h1>Can a low-cost gas sensor give earlier banana ripening warnings?</h1>
+  <p class="lead">We combine banana images, temperature and humidity, and a general gas-response signal on an ESP32 prototype, then test fairly whether each addition improves early ripening warnings on independent batches.</p>
+  <a class="btn" href="#method">See the methodology</a><a class="btn o" href="#demo">Explore sample data</a>
+ </div>
+ <div class="card" aria-label="Ripening stages">
+  <h3>Ripening stages we track</h3>
+  <div style="display:flex;gap:8px">
+   <div class="swatch" style="flex:1;background:#8db84a" title="Unripe"></div><div class="swatch" style="flex:1;background:#e2c93a" title="Ripe"></div><div class="swatch" style="flex:1;background:#b8862b" title="Overripe"></div><div class="swatch" style="flex:1;background:#5a3b1e" title="Spoiled"></div>
+  </div>
+  <p style="margin:0;color:var(--mut);font-size:.92rem">Unripe → ripe → overripe → spoiled. Colour swatches are illustrative.</p>
+ </div>
+</div></section>
+
+<section id="objective"><div class="wrap">
+ <h2>Project objective</h2>
+ <div class="grid">
+  <div class="card"><div class="icon">🎯</div><h3>Core question</h3><p>Does adding gas-sensor readings improve early warning of banana ripening compared with images and environmental readings alone?</p></div>
+  <div class="card"><div class="icon">📚</div><h3>Why it is new</h3><p>Prior work covers image-based ripeness prediction, ML on ESP32 sensor data, and specialised ethylene sensors. We aim to show a measurable improvement, not just combine sensors.</p></div>
+  <div class="card"><div class="icon">💰</div><h3>Affordable focus</h3><p>We investigate a low-cost approach, while openly acknowledging the limits of low-cost gas sensors.</p></div>
+ </div>
+</div></section>
+
+<section id="sensors" style="background:var(--surf)"><div class="wrap">
+ <h2>Sensor and input overview</h2>
+ <div class="grid">
+  <div class="card"><div class="icon">📷</div><h3>Banana images</h3><p>Camera images captured under a fixed protocol show visible ripening changes such as colour and spotting.</p></div>
+  <div class="card"><div class="icon">🌡️</div><h3>DHT22 — environment only</h3><p>Temperature and relative humidity inside the chamber. Used only as environmental context, not as a ripeness measure.</p></div>
+  <div class="card"><div class="icon">🌫️</div><h3>MQ-135 — gas-only</h3><p>A general gas-response signal over time. It is <strong>not ethylene-selective</strong>; see the disclosure below.</p></div>
+  <div class="card"><div class="icon">🧠</div><h3>ESP32</h3><p>Collects readings, adds timestamps and sends data to a laptop for analysis. It does not decide ripeness; the software does.</p></div>
+ </div>
+ <div class="warn" id="disclosure"><strong>Disclosure:</strong> the MQ-135 is a general-purpose air-quality sensor that responds to several gases and vapours. Its output is <strong>not ethylene concentration</strong> and cannot confirm ethylene levels. We treat it only as a general gas-response signal.</div>
+</div></section>
+
+<section id="demo"><div class="wrap">
+ <h2>Sample data explorer <span class="demo-badge">SAMPLE / DEMO — NOT LIVE</span></h2>
+ <p class="lead">Illustrative values for a made-up 7-day run, shown to demonstrate the dashboard. They are not measurements from our prototype, and nothing here updates from a sensor.</p>
+ <div class="card">
+  <label for="day"><strong>Sample day: <span id="dayLbl">0</span></strong></label>
+  <input id="day" type="range" min="0" max="7" value="0">
+  <div class="swatch" id="sw" aria-label="Illustrative banana colour"></div>
+  <div class="row">
+   <div class="stat"><b id="vT">–</b><small>Temp °C (DHT22, sample)</small></div>
+   <div class="stat"><b id="vH">–</b><small>Humidity % (DHT22, sample)</small></div>
+   <div class="stat"><b id="vG">–</b><small>MQ-135 relative response, unitless (sample)</small></div>
+   <div class="stat"><b id="vS">–</b><small>Illustrative stage</small></div>
+  </div>
+  <svg id="chart" viewBox="0 0 600 190" width="100%" role="img" aria-label="Sample MQ-135 relative response by day"></svg>
+  <p style="margin:0;font-size:.85rem;color:var(--mut)">Sample/demo only. MQ-135 values are a relative index, not ethylene concentration.</p>
+ </div>
+</div></section>
+
+<section id="method" style="background:var(--surf)"><div class="wrap">
+ <h2>Methodology preview</h2>
+ <p class="lead">Five comparisons are run on the <strong>same evaluation batches</strong>, so differences come from the inputs, not the data.</p>
+ <div class="chips" role="group" aria-label="Fair comparisons">
+  <button class="chip" data-i="0" aria-pressed="true">1 · Image-only</button>
+  <button class="chip" data-i="1" aria-pressed="false">2 · Environment-only</button>
+  <button class="chip" data-i="2" aria-pressed="false">3 · Gas-only</button>
+  <button class="chip" data-i="3" aria-pressed="false">4 · Image + environment</button>
+  <button class="chip" data-i="4" aria-pressed="false">5 · Full combined</button>
+ </div>
+ <div class="card"><p id="cmpTxt" style="margin-top:0"></p>
+ <div class="tbl"><table><thead><tr><th>Comparison</th><th>Images</th><th>DHT22</th><th>MQ-135</th></tr></thead><tbody id="tb"></tbody></table></div></div>
+ <div class="grid" style="margin-top:16px">
+  <div class="card"><h3>Baseline first</h3><p>The baseline begins with a simple rule-based trend, or regression/classification, before any more complex model is considered.</p></div>
+  <div class="card"><h3>Process</h3><ol class="steps"><li>Fix chamber, loading and image protocol, with empty-chamber controls.</li><li>Pilot run to measure sensor drift and recording intervals.</li><li>Collect independent batches.</li><li>Quantify what gas sensing adds.</li></ol></div>
+ </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">Fruit Ripening Monitor · student project homepage. All readings on this page are sample/demo values; MQ-135 output is not ethylene concentration.</div></footer>
+
+<script>
+const D=[ // SAMPLE / DEMO values only
+ {t:24.1,h:62,g:1.00,s:"Unripe",c:"#8db84a"},{t:24.4,h:61,g:1.04,s:"Unripe",c:"#a3c447"},
+ {t:24.8,h:63,g:1.12,s:"Ripening",c:"#cfd043"},{t:25.0,h:60,g:1.25,s:"Ripe",c:"#e2c93a"},
+ {t:25.3,h:59,g:1.41,s:"Ripe",c:"#e0b82f"},{t:25.1,h:61,g:1.58,s:"Overripe",c:"#c99a2b"},
+ {t:24.9,h:64,g:1.80,s:"Overripe",c:"#9a6f26"},{t:25.2,h:65,g:2.05,s:"Spoiled",c:"#5a3b1e"}];
+const $=id=>document.getElementById(id);
+function chart(d){
+ const W=600,H=190,p=34,mx=2.2,mn=0.9;
+ const x=i=>p+i*(W-2*p)/7,y=v=>H-p-(v-mn)/(mx-mn)*(H-2*p);
+ let s=`<line x1="${p}" y1="${H-p}" x2="${W-p}" y2="${H-p}" stroke="currentColor" opacity=".3"/>`;
+ s+=`<polyline fill="none" stroke="var(--g)" stroke-width="3" points="${D.map((r,i)=>x(i)+","+y(r.g)).join(" ")}"/>`;
+ D.forEach((r,i)=>{s+=`<circle cx="${x(i)}" cy="${y(r.g)}" r="${i==d?7:3.5}" fill="${i==d?"var(--acc)":"var(--g)"}"/><text x="${x(i)}" y="${H-10}" text-anchor="middle">D${i}</text>`});
+ s+=`<text x="${p}" y="14">Relative gas response (sample)</text>`;
+ $("chart").innerHTML=s;
+}
+function show(){const d=+$("day").value,r=D[d];
+ $("dayLbl").textContent=d;$("vT").textContent=r.t.toFixed(1);$("vH").textContent=r.h;
+ $("vG").textContent=r.g.toFixed(2);$("vS").textContent=r.s;$("sw").style.background=r.c;chart(d)}
+$("day").addEventListener("input",show);show();
+
+const C=[["Image-only","Banana images alone.",1,0,0],
+ ["Environment-only","DHT22 temperature and humidity alone.",0,1,0],
+ ["Gas-only","MQ-135 general gas response alone.",0,0,1],
+ ["Image + environment","Images plus DHT22 readings, without gas.",1,1,0],
+ ["Full combined","Images, DHT22 and MQ-135 together.",1,1,1]];
+const m=v=>v?'<span class="on">✓</span>':'<span class="off">–</span>';
+$("tb").innerHTML=C.map((c,i)=>`<tr data-r="${i}"><td>${i+1} · ${c[0]}</td><td>${m(c[2])}</td><td>${m(c[3])}</td><td>${m(c[4])}</td></tr>`).join("");
+function pick(i){
+ document.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.i==i));
+ document.querySelectorAll("#tb tr").forEach(r=>r.style.background=r.dataset.r==i?"var(--g2)":"");
+ $("cmpTxt").innerHTML=`<strong>${C[i][0]}:</strong> ${C[i][1]} Evaluated on the same batches as the other four comparisons.`}
+document.querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>pick(+b.dataset.i)));pick(0);
+
+const nav=$("nav"),mb=$("menu");
+mb.addEventListener("click",()=>{const o=nav.classList.toggle("open");mb.setAttribute("aria-expanded",o)});
+nav.addEventListener("click",e=>{if(e.target.tagName=="A"){nav.classList.remove("open");mb.setAttribute("aria-expanded",false)}});
+</script>
+</body>
+</html>
